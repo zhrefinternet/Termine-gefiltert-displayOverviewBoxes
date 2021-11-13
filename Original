@@ -1,0 +1,174 @@
+<!-- displayOverviewBoxes -->
+<dtml-if "REQUEST.get('URL').find('/manage_main')>0">
+<dtml-else>
+<dtml-if "attr('attr_wide')==1">
+  <div class="container g-mt-20">
+    <div class="row cal-boxes-row">
+</dtml-if>
+</dtml-if>
+
+<dtml-let eventType="attr('eventType')"
+  limitstart="attr('limitstart')"
+  limitend="attr('limitend')">
+<dtml-let res="agenda_sql.sql_select_event(idevent=REQUEST.get('idevent',_.None),
+  startdateiscurdate=1,
+  limitstart=REQUEST.get('limitstart',limitstart),
+  limitend=REQUEST.get('limitstart',limitend),
+  qfilter=eventType,
+  community_idcommunity=REQUEST.get('communities2display',getObjProperty('attr_communityFilter',REQUEST)),
+   )">
+  <dtml-comment>****<p><dtml-var "_.len(res)"></p>****</dtml-comment>
+   <dtml-in res mapping
+   ><dtml-if "eventPreventPublish != 1"><dtml-let seqi="_['sequence-index']"
+     eDate="getLangFmtDate(eventDateStart,lang,'%Y-%m-%d')"
+     eDay="getLangFmtDate(eventDateStart,lang,'%d')"
+     eStartDate="getLangFmtDate(eventDateStart,lang,'%d.%m.%Y')"
+     eEndDate="getLangFmtDate(eventDateEnd,lang,'%d.%m.%Y')"
+     month="getLangFmtDate(eventDateStart,lang,'%m')"
+     year="getLangFmtDate(eventDateStart,lang,'%Y')"
+     eDateEnd="getLangFmtDate(eventDateEnd,lang,'%Y-%m-%d')"
+     eEventStart="getLangFmtDate(parseLangFmtDate(eventStart),lang,'%H:%M')"
+     eEventEnd="getLangFmtDate(parseLangFmtDate(eventEnd),lang,'%H:%M')"
+     eDom="'ZR'"
+     desc="eventDescription"
+     >
+     <dtml-if "REQUEST.get('URL').find('/manage_main')>0">
+     <p><dtml-var eDay> <dtml-var "getLangFmtDate(eventDateStart,lang,'Month')[:3]"><br /><dtml-var eventTitle></p>
+     <dtml-else>
+     <div class="col-lg-4 g-mb-30">
+       <!-- Article -->
+       <article class="g-bg-white">
+         <figure class="g-pos-rel">
+             <dtml-if eventImg>
+               <img class="img-fluid w-100" alt="<dtml-var eventTitle>" src="<dtml-var ZMS_COMMON>/content/agenda/kalender/event/get_blob?tablename=event&amp;id=eventImg&amp;rowid=<dtml-var idevent>" />
+             <dtml-else>
+               <img class="img-fluid w-100" alt="<dtml-var eventTitle>" src="<dtml-var ZMS_COMMON>/unify_zhref/common/img/misc/kirche-steinmaur-neerach_agendabox.jpg" />
+             </dtml-if>
+           <figcaption class="text-uppercase text-center g-line-height-1_2 g-bg-primary-opacity-0_8 g-color-white g-pos-abs g-top-20 g-px-15 g-py-10">
+             <strong class="d-block"><dtml-var eDay></strong>
+             <hr class="g-brd-white my-1">
+             <small class="d-block"><dtml-var "getLangFmtDate(eventDateStart,lang,'Month')[:3]"></small>
+           </figcaption>
+         </figure>
+         <div class="g-pa-30">
+           <h3 class="h5 g-mb-15">
+             <dtml-if eventTitle><dtml-var eventTitle></dtml-if>
+           </h3>
+           <p><dtml-if eventDescription><dtml-var eventDescription newline_to_br></dtml-if></p>
+           <hr class="g-brd-gray-light-v4 g-my-20">
+           <ul class="list-inline small text-uppercase mb-0">
+             <li class="list-inline-item">
+               <span class="g-color-gray-dark-v4"></span>
+               <a rel="nofollow" class="u-link-v5 g-color-main g-color-primary--hover" id="modalref<dtml-var idevent>" href="#">Details</a>
+             </li>
+             <li class="list-inline-item"></li>
+           </ul>
+         </div>
+       </article>
+       <!-- End Article -->
+       </div><!-- /.col -->
+       
+       
+       
+           <dtml-if "URL.find('/manage')>0">
+           <dtml-else>
+           <script>
+             $(document).ready(function() {       
+               $('#modalref<dtml-var idevent>').click(function(e){
+                 e.preventDefault();
+                 $('#modal<dtml-var idevent>').modal('show');
+               }); 
+             }); // ~~~eo document.ready function~~~
+           </script>
+           <!-- modal for calendar
+           ================================================== -->
+           <div class="modal fade" id="modal<dtml-var idevent>" tabindex="-1" role="dialog" aria-labelledby="modal<dtml-var idevent>" aria-hidden="true">
+	     <div class="modal-dialog" role="document">
+	       <div class="modal-content">
+	         <div class="modal-header">
+	           <h5 class="modal-title" id="<dtml-var idevent>ModalLabel">
+	           <span style="font-size:0.9rem;"><dtml-try><dtml-var eStartDate><dtml-if "eventDateEnd and eventDateEnd != eventDateStart"> bis <dtml-var eEndDate></dtml-if><dtml-if eventStart>, <dtml-var eEventStart>&nbsp;Uhr</dtml-if><dtml-if eventFullDay> (Ganzt&auml;gige Veranstaltung)<dtml-else><dtml-if eventEnd> - <dtml-var eEventEnd>&nbsp;Uhr</dtml-if></dtml-if><dtml-except><dtml-var eStartDate><dtml-var error_type> <dtml-var error_value></dtml-try></span>
+	             <dtml-if eventTitle><br /><dtml-var eventTitle></dtml-if> 
+	           </h5>
+	         </div>
+	         <div class="modal-body">
+	           <dtml-if eventDescription><p class="eo-description"><dtml-var "_.string.replace(desc, '\r\n', '<br />')"><p></dtml-if>
+	           
+	           <!-- *** bo contact *** -->
+	           <dtml-if "_.len(agenda_sql.select_eventContact(idevent=_['idevent']))>0">
+	             <div class="event-contact-wrapper">
+	               <dtml-in "agenda_sql.select_eventContact(idevent=_['idevent'])">
+	                 <span class="g-font-weight-700"><dtml-if contactTitle><dtml-var contactTitle> </dtml-if><dtml-if contactProfession
+	                 ><dtml-var contactProfession></dtml-if><dtml-if contactFirstName
+	                 > <dtml-var contactFirstName></dtml-if><dtml-if contactLastname
+	                 > <dtml-var contactLastname></dtml-if></span><dtml-if contactPhoneMobile
+	                 >&nbsp;&nbsp;<br /><dtml-var contactPhoneMobile></dtml-if><dtml-if contactPhoneLandLine
+	                 >&nbsp;&nbsp;<br /><dtml-var contactPhoneLandLine></dtml-if><dtml-if contactEmail
+	                 >&nbsp;&nbsp;<br /><a href="mailto:<dtml-var contactEmail>"><dtml-var contactEmail></a></dtml-if
+	                 ><dtml-unless "_['sequence-end']"><br /></dtml-unless><br />
+	               </dtml-in>
+	             </div><!-- /.event-contact-wrapper -->
+	           </dtml-if>
+	           <!-- *** eo contact *** -->
+	           
+	           <!-- *** bo location *** -->
+	           <dtml-if "_.len(agenda_sql.select_eventLocation(idlocation =_['location_idlocation']))>0">
+	             <div class="event-location-wrapper">
+	               <dtml-in "agenda_sql.select_eventLocation(idlocation =_['location_idlocation'])">
+	                 <dtml-if locationName>
+	                   <p class="event-location-name g-font-weight-700"><dtml-var locationName></p>
+	                   </dtml-if>
+	                   <p class="event-location-address">
+	                     <dtml-if locationStreet><dtml-var locationStreet></dtml-if>
+	                     <dtml-if locationZip>, <dtml-var locationZip></dtml-if> 
+	                     <dtml-if locationCity> <dtml-var locationCity></dtml-if> 
+	                     <dtml-if locationPhone>,&nbsp;<dtml-var locationPhone></dtml-if> 
+	                     <dtml-if locationEmail>,&nbsp;<a href="mailto:<dtml-var locationEmail>"><dtml-var locationEmail></a></dtml-if>
+	                     <dtml-if "locationStreet and locationZip and locationCity">&nbsp;<dtml-try><a class="c-gold" href="https://maps.google.de/maps?q=<dtml-var locationStreet url_quote_plus>,+<dtml-var locationZip url_quote_plus>+<dtml-var locationCity url_quote_plus>,+Switzerland&t=h&z=17" target="_blank"> <i class="fa fa-map-marker" style="font-size:1.5rem ;color:red"></i></a><dtml-except></dtml-try></dtml-if>
+	                     <dtml-unless "_['sequence-end']"><br /></dtml-unless>
+	                   </p>
+	               </dtml-in>
+	             </div><!-- /.event-location-wrapper -->
+				 <div class="event-location-wrapper"><dtml-if eventURL><p class="event-collect"><span class="event-hint">URL</span><a href="<dtml-try><dtml-var "getLinkUrl(eventURL,REQUEST)"><dtml-except><dtml-var eventURL></dtml-try>">Link zu weiteren Informationen</a></p></dtml-if>
+				 </div>
+				 <div class="event-location-wrapper">
+				 <dtml-if eventFile><p class="event-file"><span class="event-hint">Download</span><a class="event-file" href="<dtml-var ZMS_COMMON>/content/agenda/kalender/event/get_blob?tablename=event&amp;id=eventFile&amp;rowid=<dtml-var idevent>" />Datei zum herunterladen</a></p></dtml-if>
+				 </div>
+	           </dtml-if>
+	           <!-- *** eo location *** -->
+	           
+	           <a href="<dtml-var "URL.replace('index_html','')">?ACTION_zrEvent=displayEvent&amp;idevent=<dtml-var idevent>" class="btn btn-sm u-btn-outline-darkgray u-btn-hover-v2-1 g-mt-30 g-mr-10 g-mb-15">Mehr</a>
+	         </div>
+	         <div class="modal-footer">
+	           <button type="button" class="btn u-btn-darkgray u-btn-hover-v2-1 btn-sm" data-dismiss="modal">Schlie&szlig;en</button>
+	          </div>
+	       </div>
+	     </div>
+           </div><!-- /.modal -->
+           </dtml-if>
+       
+       
+       
+       
+       
+       
+       
+       
+       
+       
+       </dtml-if>
+    </dtml-let>
+    </dtml-if>
+   </dtml-in>
+</dtml-let>
+</dtml-let>
+<dtml-if "REQUEST.get('URL').find('/manage_main')>0">
+<dtml-else>
+<dtml-if "attr('attr_wide')==1">
+  </div><!-- /.row -->
+</div><!-- /.container -->
+</dtml-if>
+</dtml-if>
+
+
+<!-- /displayOverviewBoxes -->
